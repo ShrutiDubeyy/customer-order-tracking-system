@@ -1,0 +1,25 @@
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f6f9;color:#222}
+.nav{background:#1f2a5a;color:#fff;padding:10px 24px;display:flex;gap:18px;align-items:center}
+.nav a{color:#fff;text-decoration:none;font-weight:bold}
+.nav a:hover{text-decoration:underline}
+.nav .brand{font-size:18px;margin-right:20px}
+.nav .env{margin-left:auto;background:#fff;color:#1f2a5a;padding:2px 10px;border-radius:10px;font-size:12px}
+main{max-width:980px;margin:20px auto;padding:0 16px}
+h1{font-size:22px}
+table{border-collapse:collapse;width:100%;background:#fff}
+th,td{border:1px solid #ccc;padding:6px 10px;text-align:left;font-size:14px}
+th{background:#e4e8f2}
+.cards{display:flex;gap:14px;flex-wrap:wrap}
+.card{background:#fff;border:1px solid #ccc;border-radius:6px;padding:14px 20px;min-width:170px}
+.card .num{font-size:28px;font-weight:bold}
+.card.warn .num{color:#b3261e}
+label{display:block;margin:10px 0 4px;font-weight:bold}
+input,select{padding:6px;font-size:14px;min-width:220px}
+button,.btn{background:#1f2a5a;color:#fff;border:0;padding:7px 14px;border-radius:4px;cursor:pointer;text-decoration:none;font-size:14px;display:inline-block}
+.ok{background:#e3f4e3;border:1px solid #6bb36b;padding:8px 12px;margin:10px 0}
+.error,.err{background:#fde8e8;border:1px solid #d66;padding:8px 12px;margin:10px 0;color:#900}
+span.err{display:block;padding:2px 6px;margin:2px 0}
+.badge{padding:2px 8px;border-radius:10px;font-size:12px;color:#fff;background:#666}
+.PLACED{background:#1565c0}.PACKED{background:#6a1b9a}.SHIPPED{background:#ef6c00}.DELIVERED{background:#2e7d32}.CANCELLED{background:#b3261e}
+.low{color:#b3261e;font-weight:bold}
+.filters{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}

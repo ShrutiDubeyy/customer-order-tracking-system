@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Dashboard')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+  <h1>Customer Order Tracking System</h1>
+  <div th:replace="~{fragments :: messages}"></div>
+  <p id="skeleton-note">Application skeleton is running. Features are added step by step on feature branches:
+     item catalogue, orders, status tracking, search/filter and exception alerts.</p>
+</main>
+</body>
+</html>
