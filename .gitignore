@@ -1,0 +1,25 @@
+# Build output
+target/
+*.war
+*.jar
+*.class
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and local data
+*.log
+data/
+
+# Secrets and local configuration
+.env
+application-local.properties
