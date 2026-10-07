@@ -28,7 +28,7 @@ public class ItemService {
     }
 
     public Item save(Item item) {
-        item.setSku(item.getSku().trim());
+        item.setName(item.getName().trim());
         repo.findBySku(item.getSku()).ifPresent(existing -> {
             if (!existing.getId().equals(item.getId())) {
                 throw new IllegalArgumentException("SKU '" + item.getSku() + "' already exists");
