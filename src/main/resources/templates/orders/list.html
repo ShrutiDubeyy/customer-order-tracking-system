@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Orders')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+  <h1>Orders</h1>
+  <div th:replace="~{fragments :: messages}"></div>
+  <form class="filters" th:action="@{/orders}" method="get">
+    <div><label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="">All</option>
+        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == fStatus}"></option>
+      </select></div>
+    <div><label for="customer">Customer</label><input type="text" id="customer" name="customer" th:value="${fCustomer}"></div>
+    <div><label for="item">Item name / SKU</label><input type="text" id="item" name="item" th:value="${fItem}"></div>
+    <button type="submit" id="filter-btn">Filter</button>
+    <a class="btn" id="new-order" th:href="@{/orders/new}">+ New order</a>
+  </form>
+  <table id="orders-table">
+    <tr><th>ID</th><th>Customer</th><th>Item</th><th>Qty</th><th>Status</th><th>Last updated</th></tr>
+    <tr th:each="o : ${orders}">
+      <td><a th:href="@{/orders/{id}(id=${o.id})}" th:text="${o.id}">1</a></td>
+      <td th:text="${o.customerName}">-</td>
+      <td th:text="${o.item.name}">-</td>
+      <td th:text="${o.quantity}">1</td>
+      <td><span th:text="${o.status}" th:class="'badge ' + ${o.status}">PLACED</span></td>
+      <td th:text="${o.updatedAtText}">-</td>
+    </tr>
+  </table>
+  <p th:if="${#lists.isEmpty(orders)}" id="no-results">No orders match your filter.</p>
+</main>
+</body>
+</html>

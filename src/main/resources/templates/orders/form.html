@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('New order')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+  <h1>Create order</h1>
+  <div th:replace="~{fragments :: messages}"></div>
+  <form th:action="@{/orders/new}" th:object="${orderForm}" method="post">
+    <label for="customerName">Customer name</label>
+    <input type="text" th:field="*{customerName}">
+    <span class="err" th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}"></span>
+    <label for="itemId">Item</label>
+    <select th:field="*{itemId}">
+      <option value="">-- choose --</option>
+      <option th:each="i : ${items}" th:value="${i.id}"
+              th:text="${i.sku + ' - ' + i.name + ' (stock ' + i.stock + ')'}"></option>
+    </select>
+    <span class="err" th:if="${#fields.hasErrors('itemId')}" th:errors="*{itemId}"></span>
+    <label for="quantity">Quantity</label>
+    <input type="number" th:field="*{quantity}" min="1">
+    <span class="err" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></span>
+    <p><button type="submit" id="place-order">Place order</button> <a th:href="@{/orders}">Cancel</a></p>
+  </form>
+</main>
+</body>
+</html>
