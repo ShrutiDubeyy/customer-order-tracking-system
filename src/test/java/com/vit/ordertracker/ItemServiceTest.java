@@ -35,6 +35,7 @@ class ItemServiceTest {
 
         Item newItem = new Item();
         newItem.setSku(" SKU-1 ");
+	newItem.setName("Mouse");
 
         assertThrows(IllegalArgumentException.class, () -> service.save(newItem));
         verify(repo, never()).save(any(Item.class));
