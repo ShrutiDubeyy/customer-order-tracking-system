@@ -10,6 +10,9 @@
 <header class="nav" th:fragment="nav">
   <span class="brand">Order Tracker</span>
   <a id="nav-home" th:href="@{/}">Dashboard</a>
+  <a id="nav-items" th:href="@{/items}">Items</a>
+  <a id="nav-orders" th:href="@{/orders}">Orders</a>
+  <a id="nav-track" th:href="@{/track}">Track</a>
   <span class="env" id="env" th:text="${env}">local</span>
 </header>
 <div th:fragment="messages">
