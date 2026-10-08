@@ -26,6 +26,7 @@ public class HomeController {
         model.addAttribute("itemCount", items.count());
         model.addAttribute("orderCount", orders.count());
         model.addAttribute("lowStockCount", alerts.lowStockItems().size());
+        model.addAttribute("delayedCount", alerts.delayedOrders().size());
         return "index";
     }
 
@@ -42,6 +43,8 @@ public class HomeController {
     @GetMapping("/alerts")
     public String alertsPage(Model model) {
         model.addAttribute("lowStock", alerts.lowStockItems());
+        model.addAttribute("delayed", alerts.delayedOrders());
+        model.addAttribute("delayHours", alerts.getDelayHours());
         return "alerts";
     }
 }
