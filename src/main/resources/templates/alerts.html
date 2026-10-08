@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Alerts')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+  <h1>Exception alerts</h1>
+  <h2>Low-stock items</h2>
+  <p th:if="${#lists.isEmpty(lowStock)}" id="no-lowstock">No low-stock items.</p>
+  <table th:unless="${#lists.isEmpty(lowStock)}" id="lowstock-table">
+    <tr><th>SKU</th><th>Name</th><th>Stock</th><th>Reorder level</th></tr>
+    <tr th:each="i : ${lowStock}">
+      <td th:text="${i.sku}">-</td><td th:text="${i.name}">-</td>
+      <td class="low" th:text="${i.stock}">0</td><td th:text="${i.reorderLevel}">0</td>
+    </tr>
+  </table>
+</main>
+</body>
+</html>
