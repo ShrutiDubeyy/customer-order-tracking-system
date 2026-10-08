@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Item')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+  <h1 th:text="${title}">Item</h1>
+  <div th:replace="~{fragments :: messages}"></div>
+  <form th:action="@{/items/save}" th:object="${item}" method="post">
+    <input type="hidden" th:field="*{id}">
+    <label for="sku">SKU</label>
+    <input type="text" th:field="*{sku}">
+    <span class="err" th:if="${#fields.hasErrors('sku')}" th:errors="*{sku}"></span>
+    <label for="name">Name</label>
+    <input type="text" th:field="*{name}">
+    <span class="err" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+    <label for="price">Price</label>
+    <input type="number" step="0.01" th:field="*{price}">
+    <span class="err" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
+    <label for="stock">Stock</label>
+    <input type="number" th:field="*{stock}">
+    <span class="err" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></span>
+    <label for="reorderLevel">Reorder level</label>
+    <input type="number" th:field="*{reorderLevel}">
+    <span class="err" th:if="${#fields.hasErrors('reorderLevel')}" th:errors="*{reorderLevel}"></span>
+    <p><button type="submit" id="save-item">Save</button> <a href="items" th:href="@{/items}">Cancel</a></p>
+  </form>
+</main>
+</body>
+</html>
