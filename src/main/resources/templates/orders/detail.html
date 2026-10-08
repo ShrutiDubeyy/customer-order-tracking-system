@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Order')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main>
+  <h1 th:text="'Order #' + ${order.id}">Order</h1>
+  <div th:replace="~{fragments :: messages}"></div>
+  <table id="order-detail">
+    <tr><th>Customer</th><td th:text="${order.customerName}">-</td></tr>
+    <tr><th>Item</th><td th:text="${order.item.sku + ' - ' + order.item.name}">-</td></tr>
+    <tr><th>Quantity</th><td th:text="${order.quantity}">1</td></tr>
+    <tr><th>Status</th><td><span id="order-status" th:text="${order.status}" th:class="'badge ' + ${order.status}">PLACED</span></td></tr>
+    <tr><th>Created</th><td th:text="${order.createdAtText}">-</td></tr>
+    <tr><th>Last updated</th><td th:text="${order.updatedAtText}">-</td></tr>
+  </table>
+  <h2>Update status</h2>
+  <p th:if="${#lists.isEmpty(nextStatuses)}">No further status changes are possible.</p>
+  <form th:each="s : ${nextStatuses}" th:action="@{/orders/{id}/status(id=${order.id})}" method="post" style="display:inline">
+    <input type="hidden" name="status" th:value="${s}">
+    <button type="submit" th:id="'btn-' + ${s}" th:text="'Mark ' + ${s}">Mark</button>
+  </form>
+  <p><a th:href="@{/orders}">&larr; Back to orders</a></p>
+</main>
+</body>
+</html>
