@@ -9,6 +9,8 @@
   <div class="cards">
     <div class="card"><div class="num" id="count-items" th:text="${itemCount}">0</div>Items in catalogue</div>
     <div class="card"><div class="num" id="count-orders" th:text="${orderCount}">0</div>Orders</div>
+    <div class="card warn"><div class="num" id="count-lowstock" th:text="${lowStockCount}">0</div>Low-stock items</div>
+    <div class="card warn"><div class="num" id="count-delayed" th:text="${delayedCount}">0</div>Delayed orders</div>
   </div>
   <h1>Track an order</h1>
   <form th:action="@{/track}" method="get">

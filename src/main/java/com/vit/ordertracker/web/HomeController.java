@@ -1,5 +1,6 @@
 package com.vit.ordertracker.web;
 
+import com.vit.ordertracker.service.AlertService;
 import com.vit.ordertracker.service.ItemService;
 import com.vit.ordertracker.service.OrderService;
 import org.springframework.stereotype.Controller;
@@ -12,16 +13,20 @@ public class HomeController {
 
     private final ItemService items;
     private final OrderService orders;
+    private final AlertService alerts;
 
-    public HomeController(ItemService items, OrderService orders) {
+    public HomeController(ItemService items, OrderService orders, AlertService alerts) {
         this.items = items;
         this.orders = orders;
+        this.alerts = alerts;
     }
 
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("itemCount", items.count());
         model.addAttribute("orderCount", orders.count());
+        model.addAttribute("lowStockCount", alerts.lowStockItems().size());
+        model.addAttribute("delayedCount", alerts.delayedOrders().size());
         return "index";
     }
 
@@ -33,5 +38,13 @@ public class HomeController {
                     () -> model.addAttribute("error", "Order not found"));
         }
         return "track";
+    }
+
+    @GetMapping("/alerts")
+    public String alertsPage(Model model) {
+        model.addAttribute("lowStock", alerts.lowStockItems());
+        model.addAttribute("delayed", alerts.delayedOrders());
+        model.addAttribute("delayHours", alerts.getDelayHours());
+        return "alerts";
     }
 }
