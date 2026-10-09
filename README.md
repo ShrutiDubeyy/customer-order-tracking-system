@@ -36,6 +36,8 @@ The application starts on http://localhost:8080. If that port is busy, set anoth
 
 Health check: `/actuator/health`
 
+Continuous integration: Jenkins job order-tracker-ci builds the develop branch.
+
 ## Project structure
     src/main/java/com/vit/ordertracker/   application code (web, service, repository, model)
     src/main/resources/                   templates, static files, configuration
