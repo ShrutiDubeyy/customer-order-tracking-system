@@ -19,6 +19,8 @@ pipeline {
         MAVEN_HOME = 'C:\\Users\\shrut\\Downloads\\apache-maven-3.10.0-bin\\apache-maven-3.10.0'
         PATH       = "${JAVA_HOME}\\bin;${MAVEN_HOME}\\bin;${PATH}"
         APP_NAME   = "order-tracker-${params.ENVIRONMENT}"
+	 TOMCAT_PORT = "${params.TOMCAT_PORT}"
+
     }
 
     stages {
