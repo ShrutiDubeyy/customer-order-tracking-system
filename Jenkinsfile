@@ -15,12 +15,12 @@ pipeline {
     }
 
     environment {
-        JAVA_HOME  = 'C:\\Program Files\\Java\\jdk-21'
-        MAVEN_HOME = 'C:\\Users\\shrut\\Downloads\\apache-maven-3.10.0-bin\\apache-maven-3.10.0'
-        PATH       = "${JAVA_HOME}\\bin;${MAVEN_HOME}\\bin;${PATH}"
-        APP_NAME   = "order-tracker-${params.ENVIRONMENT}"
-	 TOMCAT_PORT = "${params.TOMCAT_PORT}"
-
+        JAVA_HOME   = 'C:\\Program Files\\Java\\jdk-21'
+        MAVEN_HOME  = 'C:\\Users\\shrut\\Downloads\\apache-maven-3.10.0-bin\\apache-maven-3.10.0'
+        PATH        = "${JAVA_HOME}\\bin;${MAVEN_HOME}\\bin;${PATH}"
+        APP_NAME    = "order-tracker-${params.ENVIRONMENT}"
+        TOMCAT_HOME = "${params.TOMCAT_HOME}"
+        TOMCAT_PORT = "${params.TOMCAT_PORT}"
     }
 
     stages {
@@ -53,16 +53,26 @@ pipeline {
         stage('Deploy') {
             steps {
                 bat "copy /Y target\\order-tracker.war \"${params.TOMCAT_HOME}\\webapps\\${env.APP_NAME}.war\""
-                bat "dir \"${params.TOMCAT_HOME}\\webapps\\*.war\""
                 powershell '''
+                    # Maven stamps files with a fixed 1980 date; set "now" so Tomcat notices the new WAR and redeploys
+                    (Get-Item "$env:TOMCAT_HOME/webapps/$env:APP_NAME.war").LastWriteTime = Get-Date
+                    Get-ChildItem "$env:TOMCAT_HOME/webapps" -Filter *.war | Format-Table Name, Length, LastWriteTime
+                '''
+                powershell '''
+                    $ProgressPreference = 'SilentlyContinue'
+                    [System.Net.WebRequest]::DefaultWebProxy = $null
                     $url = "http://localhost:$env:TOMCAT_PORT/$env:APP_NAME/actuator/health"
+                    Write-Output "Waiting for $url"
                     $ok = $false
-                    for ($i = 1; $i -le 20; $i++) {
+                    for ($i = 1; $i -le 30; $i++) {
                         try {
                             $r = Invoke-WebRequest -UseBasicParsing -Uri $url -TimeoutSec 5
+                            Write-Output "Attempt ${i}: HTTP $($r.StatusCode) $($r.Content)"
                             if ($r.StatusCode -eq 200 -and $r.Content -match 'UP') { $ok = $true; break }
-                        } catch { }
-                        Start-Sleep -Seconds 3
+                        } catch {
+                            Write-Output "Attempt ${i}: $($_.Exception.Message)"
+                        }
+                        Start-Sleep -Seconds 4
                     }
                     if (-not $ok) { Write-Error "Health check failed: $url"; exit 1 }
                     Write-Output "Deployed and healthy: http://localhost:$env:TOMCAT_PORT/$env:APP_NAME/"
