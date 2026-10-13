@@ -63,12 +63,16 @@ pipeline {
                     [System.Net.WebRequest]::DefaultWebProxy = $null
                     $url = "http://localhost:$env:TOMCAT_PORT/$env:APP_NAME/actuator/health"
                     Write-Output "Waiting for $url"
+                    # Give Tomcat time to notice the new WAR, undeploy the old version and start the new one
+                    Start-Sleep -Seconds 20
                     $ok = $false
-                    for ($i = 1; $i -le 30; $i++) {
+                    for ($i = 1; $i -le 40; $i++) {
                         try {
                             $r = Invoke-WebRequest -UseBasicParsing -Uri $url -TimeoutSec 5
-                            Write-Output "Attempt ${i}: HTTP $($r.StatusCode) $($r.Content)"
-                            if ($r.StatusCode -eq 200 -and $r.Content -match 'UP') { $ok = $true; break }
+                            # The actuator content type makes PowerShell return bytes, so convert to text first
+                            if ($r.Content -is [byte[]]) { $body = [System.Text.Encoding]::UTF8.GetString($r.Content) } else { $body = [string]$r.Content }
+                            Write-Output "Attempt ${i}: HTTP $($r.StatusCode) $body"
+                            if ($r.StatusCode -eq 200 -and $body -like '*"status":"UP"*') { $ok = $true; break }
                         } catch {
                             Write-Output "Attempt ${i}: $($_.Exception.Message)"
                         }
