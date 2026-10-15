@@ -50,6 +50,18 @@ pipeline {
             }
         }
 
+        stage('Selenium Tests') {
+            steps {
+                bat "mvn -B test -Pselenium -Dapp.environment=${params.ENVIRONMENT}"
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: 'target/surefire-reports/TEST-com.vit.ordertracker.selenium.*.xml'
+                    archiveArtifacts artifacts: 'target/screenshots/*.png', allowEmptyArchive: true
+                }
+            }
+        }
+
         stage('Deploy') {
             steps {
                 bat "copy /Y target\\order-tracker.war \"${params.TOMCAT_HOME}\\webapps\\${env.APP_NAME}.war\""
