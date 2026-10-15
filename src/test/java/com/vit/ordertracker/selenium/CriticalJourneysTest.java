@@ -89,7 +89,9 @@ class CriticalJourneysTest extends SeleniumBase {
         open("/orders");
         type(By.id("customer"), customer);
         click(By.id("filter-btn"));
-        List<WebElement> rows = driver.findElements(By.xpath("//table[@id='orders-table']//tr[td]"));
+        By orderRows = By.xpath("//table[@id='orders-table']//tr[td]");
+        wait.until(ExpectedConditions.numberOfElementsToBe(orderRows, 1));
+        List<WebElement> rows = driver.findElements(orderRows);
         assertEquals(1, rows.size());
         assertTrue(rows.get(0).getText().contains(customer));
 

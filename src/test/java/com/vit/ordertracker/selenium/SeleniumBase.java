@@ -21,7 +21,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 /**
  * Base class for browser tests. The application is started on a random port for the test run.
  * System properties (all optional):
- *   -Dbrowser=edge|chrome   browser to use (default edge)
+ *   -Dbrowser=chrome|edge   browser to use (default chrome; Selenium Manager downloads Chrome for Testing and its driver)
  *   -Dheadless=false        show the browser window (default: headless)
  *   -Dbase.url=URL          test an already deployed application instead (e.g. http://localhost:8082/order-tracker-dev)
  */
@@ -61,7 +61,7 @@ abstract class SeleniumBase {
             options.addArguments(args);
             driver = new EdgeDriver(options);
         }
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     }
 
     @AfterEach
@@ -100,6 +100,11 @@ abstract class SeleniumBase {
         type(By.id("stock"), stock);
         type(By.id("reorderLevel"), reorder);
         click(By.id("save-item"));
+        // wait for the result: success message, or an error on the form (avoids racing the redirect)
+        wait.until(ExpectedConditions.or(
+                ExpectedConditions.visibilityOfElementLocated(By.id("msg-ok")),
+                ExpectedConditions.visibilityOfElementLocated(By.id("msg-error")),
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".err"))));
     }
 
     /** Reads the stock of an item from the item list. */
@@ -122,6 +127,11 @@ abstract class SeleniumBase {
         }
         type(By.id("quantity"), String.valueOf(quantity));
         click(By.id("place-order"));
+        // wait for the result: the new order page, or an error on the form
+        wait.until(ExpectedConditions.or(
+                ExpectedConditions.urlMatches(".*/orders/\\d+$"),
+                ExpectedConditions.visibilityOfElementLocated(By.id("msg-error")),
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".err"))));
     }
 
     /** Creates an order and returns its ID (read from the order page URL). */
