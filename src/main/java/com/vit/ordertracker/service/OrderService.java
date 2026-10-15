@@ -72,7 +72,7 @@ public class OrderService {
         String c = customer == null ? "" : customer.trim().toLowerCase();
         String i = item == null ? "" : item.trim().toLowerCase();
         return orders.findAll().stream()
-                .filter(o -> status == null || o.getStatus() != status)
+                .filter(o -> status == null || o.getStatus() == status)
                 .filter(o -> c.isEmpty() || o.getCustomerName().toLowerCase().contains(c))
                 .filter(o -> i.isEmpty()
                         || o.getItem().getName().toLowerCase().contains(i)
