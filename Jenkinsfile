@@ -25,7 +25,7 @@ pipeline {
         APP_NAME    = "order-tracker-${params.ENVIRONMENT}"
         TOMCAT_HOME = "${params.TOMCAT_HOME}"
         TOMCAT_PORT = "${params.TOMCAT_PORT}"
-        REGISTRY       = 'localhost:5001'
+        REGISTRY       = 'localhost:5002'
         IMAGE_NAME     = 'order-tracker'
         IMAGE_TAG      = "0.1.0-${BUILD_NUMBER}"
         CONTAINER_NAME = "order-tracker-${params.ENVIRONMENT}-docker"
