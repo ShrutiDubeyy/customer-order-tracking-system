@@ -1,0 +1,106 @@
+---
+# Prepares an Ubuntu node to run the Customer Order Tracking System.
+#
+# Dry run : ansible-playbook -i ansible/inventory.ini ansible/site.yml --check --diff --ask-become-pass
+# Apply   : ansible-playbook -i ansible/inventory.ini ansible/site.yml --ask-become-pass
+#
+# The playbook is idempotent: a second run reports changed=0.
+- name: Configure the Order Tracker node
+  hosts: order_nodes
+  become: true
+  gather_facts: true
+
+  vars:
+    app_user: ordertracker
+    app_group: ordertracker
+    app_home: /opt/order-tracker
+    releases_dir: /opt/order-tracker/releases
+    config_dir: /etc/order-tracker
+    log_dir: /var/log/order-tracker
+    app_port: 8090
+    app_environment: ansible
+    java_opts: "-Xmx384m"
+    packages:
+      - openjdk-17-jre-headless
+      - curl
+      - ca-certificates
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create the application group
+      ansible.builtin.group:
+        name: "{{ app_group }}"
+        system: true
+        state: present
+
+    - name: Create the application user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        group: "{{ app_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        home: "{{ app_home }}"
+        create_home: false
+        state: present
+
+    - name: Create application directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ app_group }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "{{ app_home }}", owner: "{{ app_user }}", mode: "0755" }
+        - { path: "{{ releases_dir }}", owner: "{{ app_user }}", mode: "0755" }
+        - { path: "{{ log_dir }}", owner: "{{ app_user }}", mode: "0750" }
+        - { path: "{{ config_dir }}", owner: root, mode: "0750" }
+      ignore_errors: "{{ ansible_check_mode }}"   # check mode does not create the user first
+
+    - name: Write the application environment file
+      ansible.builtin.template:
+        src: order-tracker.env.j2
+        dest: "{{ config_dir }}/order-tracker.env"
+        owner: root
+        group: "{{ app_group }}"
+        mode: "0640"
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Install the systemd service unit
+      ansible.builtin.template:
+        src: order-tracker.service.j2
+        dest: /etc/systemd/system/order-tracker.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload systemd
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Enable the service at boot (it is started when a release is deployed)
+      ansible.builtin.systemd:
+        name: order-tracker
+        enabled: true
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Check the installed Java version
+      ansible.builtin.command: java -version
+      register: java_check
+      changed_when: false
+      check_mode: false
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Show the Java version
+      ansible.builtin.debug:
+        msg: "{{ java_check.stderr_lines[0] }}"
+      when: java_check is succeeded
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true

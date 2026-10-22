@@ -1,0 +1,18 @@
+# Managed by Ansible - manual changes will be overwritten
+[Unit]
+Description=Customer Order Tracking System
+After=network.target
+
+[Service]
+User={{ app_user }}
+Group={{ app_group }}
+EnvironmentFile={{ config_dir }}/order-tracker.env
+WorkingDirectory={{ app_home }}
+ExecStart=/usr/bin/java $JAVA_OPTS -jar {{ app_home }}/current/order-tracker.war
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:{{ log_dir }}/app.log
+StandardError=append:{{ log_dir }}/app.log
+
+[Install]
+WantedBy=multi-user.target
