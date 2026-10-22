@@ -1,0 +1,44 @@
+
+PLAY [Configure the Order Tracker node] ****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [order-node]
+
+TASK [Install required packages] ***********************************************
+changed: [order-node]
+
+TASK [Create the application group] ********************************************
+changed: [order-node]
+
+TASK [Create the application user] *********************************************
+changed: [order-node]
+
+TASK [Create application directories] ******************************************
+changed: [order-node] => (item={'path': '/opt/order-tracker', 'owner': 'ordertracker', 'mode': '0755'})
+changed: [order-node] => (item={'path': '/opt/order-tracker/releases', 'owner': 'ordertracker', 'mode': '0755'})
+changed: [order-node] => (item={'path': '/var/log/order-tracker', 'owner': 'ordertracker', 'mode': '0750'})
+changed: [order-node] => (item={'path': '/etc/order-tracker', 'owner': 'root', 'mode': '0750'})
+
+TASK [Write the application environment file] **********************************
+changed: [order-node]
+
+TASK [Install the systemd service unit] ****************************************
+changed: [order-node]
+
+TASK [Enable the service at boot (it is started when a release is deployed)] ***
+changed: [order-node]
+
+TASK [Check the installed Java version] ****************************************
+ok: [order-node]
+
+TASK [Show the Java version] ***************************************************
+ok: [order-node] => {
+    "msg": "openjdk version \"17.0.20.1\" 2026-08-18"
+}
+
+RUNNING HANDLER [Reload systemd] ***********************************************
+ok: [order-node]
+
+PLAY RECAP *********************************************************************
+order-node                 : ok=11   changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
