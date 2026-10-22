@@ -1,0 +1,2 @@
+# keep Linux-style line endings for the Ansible files (they are run in Ubuntu)
+ansible/** text eol=lf
