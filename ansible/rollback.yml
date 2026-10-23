@@ -1,0 +1,61 @@
+---
+# Manual rollback: switches current and previous (run it again to undo).
+# Run: ansible-playbook -i ansible/inventory.ini ansible/rollback.yml
+- name: Roll back to the previous release
+  hosts: order_nodes
+  become: true
+  gather_facts: false
+
+  vars:
+    app_home: /opt/order-tracker
+    app_port: 8090
+    health_url: "http://localhost:{{ app_port }}/actuator/health"
+    health_retries: 24
+    health_delay: 5
+
+  tasks:
+    - name: Find the previous release
+      ansible.builtin.stat:
+        path: "{{ app_home }}/previous"
+      register: prev
+
+    - name: Stop if there is no previous release
+      ansible.builtin.fail:
+        msg: "There is no previous release to roll back to"
+      when: not (prev.stat.exists and prev.stat.islnk)
+
+    - name: Find the release that is live now
+      ansible.builtin.stat:
+        path: "{{ app_home }}/current"
+      register: cur
+
+    - name: Point current at the previous release
+      ansible.builtin.file:
+        src: "{{ prev.stat.lnk_source }}"
+        dest: "{{ app_home }}/current"
+        state: link
+        force: true
+
+    - name: Keep the replaced release as previous
+      ansible.builtin.file:
+        src: "{{ cur.stat.lnk_source }}"
+        dest: "{{ app_home }}/previous"
+        state: link
+        force: true
+
+    - name: Restart the service
+      ansible.builtin.systemd:
+        name: order-tracker
+        state: restarted
+
+    - name: Health check - wait until the application reports UP
+      ansible.builtin.command: "curl -fsS {{ health_url }}"
+      register: health
+      until: health.rc == 0 and 'UP' in health.stdout
+      retries: "{{ health_retries }}"
+      delay: "{{ health_delay }}"
+      changed_when: false
+
+    - name: Report the result
+      ansible.builtin.debug:
+        msg: "Rolled back to {{ prev.stat.lnk_source }}: {{ health.stdout }}"
