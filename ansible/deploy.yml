@@ -1,0 +1,127 @@
+---
+# Deploys one release of the application with a health check and automatic rollback.
+#
+#   ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -e app_version=1.0.0
+#   ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -e app_version=2.0.0-bad -e war_src=/tmp/broken.war -e health_retries=6
+#
+# Layout on the node:  /opt/order-tracker/releases/<version>/order-tracker.war
+#                      /opt/order-tracker/current  -> releases/<live version>
+#                      /opt/order-tracker/previous -> releases/<version that was live before>
+- name: Deploy a release
+  hosts: order_nodes
+  become: true
+
+  vars:
+    app_user: ordertracker
+    app_group: ordertracker
+    app_home: /opt/order-tracker
+    releases_dir: /opt/order-tracker/releases
+    app_port: 8090
+    app_version: "1.0.0"
+    war_src: "{{ playbook_dir }}/../target/order-tracker.war"
+    health_url: "http://localhost:{{ app_port }}/actuator/health"
+    health_retries: 24
+    health_delay: 5
+
+  tasks:
+    - name: Find the release that is live now
+      ansible.builtin.stat:
+        path: "{{ app_home }}/current"
+      register: live
+
+    - name: Deploy the new release and verify it
+      block:
+        - name: Create the release folder
+          ansible.builtin.file:
+            path: "{{ releases_dir }}/{{ app_version }}"
+            state: directory
+            owner: "{{ app_user }}"
+            group: "{{ app_group }}"
+            mode: "0755"
+
+        - name: Copy the WAR into the release folder
+          ansible.builtin.copy:
+            src: "{{ war_src }}"
+            dest: "{{ releases_dir }}/{{ app_version }}/order-tracker.war"
+            remote_src: true
+            owner: "{{ app_user }}"
+            group: "{{ app_group }}"
+            mode: "0644"
+
+        - name: Point current at the new release
+          ansible.builtin.file:
+            src: "{{ releases_dir }}/{{ app_version }}"
+            dest: "{{ app_home }}/current"
+            state: link
+            force: true
+          register: switched
+
+        - name: Restart the service because the release changed
+          ansible.builtin.systemd:
+            name: order-tracker
+            state: restarted
+          when: switched.changed
+
+        - name: Make sure the service is running
+          ansible.builtin.systemd:
+            name: order-tracker
+            state: started
+
+        - name: Health check - wait until the application reports UP
+          ansible.builtin.command: "curl -fsS {{ health_url }}"
+          register: health
+          until: health.rc == 0 and 'UP' in health.stdout
+          retries: "{{ health_retries }}"
+          delay: "{{ health_delay }}"
+          changed_when: false
+          failed_when: false
+
+        - name: Remember the previous release for rollback
+          ansible.builtin.file:
+            src: "{{ live.stat.lnk_source }}"
+            dest: "{{ app_home }}/previous"
+            state: link
+            force: true
+          when: switched.changed and live.stat.exists and live.stat.islnk
+
+        - name: Report the result
+          ansible.builtin.debug:
+            msg: "Release {{ app_version }} is live and healthy: {{ health.stdout }}"
+
+      rescue:
+        - name: Point current back at the previous release
+          ansible.builtin.file:
+            src: "{{ live.stat.lnk_source }}"
+            dest: "{{ app_home }}/current"
+            state: link
+            force: true
+          when: live.stat.exists and live.stat.islnk
+
+        - name: Restart the service on the previous release
+          ansible.builtin.systemd:
+            name: order-tracker
+            state: restarted
+          when: live.stat.exists and live.stat.islnk
+
+        - name: Health check after the rollback
+          ansible.builtin.command: "curl -fsS {{ health_url }}"
+          register: health_after
+          until: health_after.rc == 0 and 'UP' in health_after.stdout
+          retries: "{{ health_retries }}"
+          delay: "{{ health_delay }}"
+          changed_when: false
+          failed_when: false
+          when: live.stat.exists and live.stat.islnk
+
+        - name: Remove the rejected release
+          ansible.builtin.file:
+            path: "{{ releases_dir }}/{{ app_version }}"
+            state: absent
+
+        - name: Report the rollback
+          ansible.builtin.debug:
+            msg: "Release {{ app_version }} failed its health check; restored {{ live.stat.lnk_source | default('nothing (no previous release)') }}"
+
+        - name: Fail the run so the rejected release is visible
+          ansible.builtin.fail:
+            msg: "Release {{ app_version }} was rejected and the previous release was restored"

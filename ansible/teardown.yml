@@ -1,0 +1,52 @@
+---
+# Returns the node to its clean state (used before provisioning from scratch).
+# Run: ansible-playbook -i ansible/inventory.ini ansible/teardown.yml
+- name: Return the node to a clean state
+  hosts: order_nodes
+  become: true
+  gather_facts: false
+
+  vars:
+    app_user: ordertracker
+    app_group: ordertracker
+    app_home: /opt/order-tracker
+    config_dir: /etc/order-tracker
+    log_dir: /var/log/order-tracker
+
+  tasks:
+    - name: Stop and disable the service (ignored if it does not exist)
+      ansible.builtin.systemd:
+        name: order-tracker
+        state: stopped
+        enabled: false
+      ignore_errors: true
+
+    - name: Remove the service unit, configuration, releases and logs
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/order-tracker.service
+        - "{{ config_dir }}"
+        - "{{ app_home }}"
+        - "{{ log_dir }}"
+
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Remove the application user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        state: absent
+
+    - name: Remove the application group
+      ansible.builtin.group:
+        name: "{{ app_group }}"
+        state: absent
+
+    - name: Remove Java
+      ansible.builtin.apt:
+        name: openjdk-17-jre-headless
+        state: absent
+        autoremove: true

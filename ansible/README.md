@@ -1,18 +1,26 @@
-# Node configuration with Ansible
+# Node configuration, deployment and rollback with Ansible
 
-Prepares an Ubuntu node (WSL2) to run the Customer Order Tracking System.
+Target node: Ubuntu (WSL2) with systemd. All commands are run from the repository root in Ubuntu.
 
-| Item | Value |
-|------|-------|
-| Packages | openjdk-17-jre-headless, curl, ca-certificates |
-| User / group | ordertracker / ordertracker (system account, no login) |
-| Folders | /opt/order-tracker, /opt/order-tracker/releases, /var/log/order-tracker, /etc/order-tracker |
-| Files | /etc/order-tracker/order-tracker.env, /etc/systemd/system/order-tracker.service |
-| Port | 8090/tcp (set through PORT in the environment file) |
-| Service | order-tracker (systemd), enabled at boot |
+| Playbook | Purpose |
+|----------|---------|
+| site.yml | Provisions the node: Java 17, service user, folders, config files, systemd unit (Task 13) |
+| deploy.yml | Deploys a release, checks /actuator/health, rolls back automatically if the check fails |
+| rollback.yml | Manual rollback to the previous release |
+| teardown.yml | Returns the node to a clean state |
 
-## Run
-    sudo apt install -y ansible
-    ansible-playbook -i ansible/inventory.ini ansible/site.yml --check --diff --ask-become-pass   # dry run
-    ansible-playbook -i ansible/inventory.ini ansible/site.yml --ask-become-pass                   # apply
-    ansible-playbook -i ansible/inventory.ini ansible/site.yml --ask-become-pass                   # again: changed=0
+## Release layout
+    /opt/order-tracker/releases/<version>/order-tracker.war
+    /opt/order-tracker/current  -> releases/<live version>
+    /opt/order-tracker/previous -> releases/<previous version>
+
+## Commands
+    ansible-playbook -i ansible/inventory.ini ansible/teardown.yml
+    ansible-playbook -i ansible/inventory.ini ansible/site.yml
+    ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -e app_version=1.0.0
+    ansible-playbook -i ansible/inventory.ini ansible/site.yml                              # again: changed=0
+    ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -e app_version=1.0.0       # again: changed=0
+    ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -e app_version=2.0.0-bad -e war_src=/tmp/broken.war -e health_retries=6
+    ansible-playbook -i ansible/inventory.ini ansible/rollback.yml
+
+Build the WAR first on Windows: `mvn clean package -DskipTests` (creates target/order-tracker.war).
