@@ -1,0 +1,316 @@
+
+PLAY [Return the node to a clean state] ****************************************
+
+TASK [Stop and disable the service (ignored if it does not exist)] *************
+changed: [order-node]
+
+TASK [Remove the service unit, configuration, releases and logs] ***************
+changed: [order-node] => (item=/etc/systemd/system/order-tracker.service)
+changed: [order-node] => (item=/etc/order-tracker)
+changed: [order-node] => (item=/opt/order-tracker)
+changed: [order-node] => (item=/var/log/order-tracker)
+
+TASK [Reload systemd] **********************************************************
+ok: [order-node]
+
+TASK [Remove the application user] *********************************************
+changed: [order-node]
+
+TASK [Remove the application group] ********************************************
+ok: [order-node]
+
+TASK [Remove Java] *************************************************************
+changed: [order-node]
+
+PLAY RECAP *********************************************************************
+order-node                 : ok=6    changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+PLAY [Configure the Order Tracker node] ****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [order-node]
+
+TASK [Install required packages] ***********************************************
+changed: [order-node]
+
+TASK [Create the application group] ********************************************
+changed: [order-node]
+
+TASK [Create the application user] *********************************************
+changed: [order-node]
+
+TASK [Create application directories] ******************************************
+changed: [order-node] => (item={'path': '/opt/order-tracker', 'owner': 'ordertracker', 'mode': '0755'})
+changed: [order-node] => (item={'path': '/opt/order-tracker/releases', 'owner': 'ordertracker', 'mode': '0755'})
+changed: [order-node] => (item={'path': '/var/log/order-tracker', 'owner': 'ordertracker', 'mode': '0750'})
+changed: [order-node] => (item={'path': '/etc/order-tracker', 'owner': 'root', 'mode': '0750'})
+
+TASK [Write the application environment file] **********************************
+changed: [order-node]
+
+TASK [Install the systemd service unit] ****************************************
+changed: [order-node]
+
+TASK [Enable the service at boot (it is started when a release is deployed)] ***
+changed: [order-node]
+
+TASK [Check the installed Java version] ****************************************
+ok: [order-node]
+
+TASK [Show the Java version] ***************************************************
+ok: [order-node] => {
+    "msg": "openjdk version \"17.0.20.1\" 2026-08-18"
+}
+
+RUNNING HANDLER [Reload systemd] ***********************************************
+ok: [order-node]
+
+PLAY RECAP *********************************************************************
+order-node                 : ok=11   changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+PLAY [Deploy a release] ********************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [order-node]
+
+TASK [Find the release that is live now] ***************************************
+ok: [order-node]
+
+TASK [Create the release folder] ***********************************************
+changed: [order-node]
+
+TASK [Copy the WAR into the release folder] ************************************
+changed: [order-node]
+
+TASK [Point current at the new release] ****************************************
+changed: [order-node]
+
+TASK [Restart the service because the release changed] *************************
+changed: [order-node]
+
+TASK [Make sure the service is running] ****************************************
+ok: [order-node]
+
+TASK [Health check - wait until the application reports UP] ********************
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (24 retries left).
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (23 retries left).
+ok: [order-node]
+
+TASK [Remember the previous release for rollback] ******************************
+skipping: [order-node]
+
+TASK [Report the result] *******************************************************
+ok: [order-node] => {
+    "msg": "Release 1.0.0 is live and healthy: {\"status\":\"UP\"}"
+}
+
+PLAY RECAP *********************************************************************
+order-node                 : ok=9    changed=4    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+
+
+PLAY [Configure the Order Tracker node] ****************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [order-node]
+
+TASK [Install required packages] ***********************************************
+ok: [order-node]
+
+TASK [Create the application group] ********************************************
+ok: [order-node]
+
+TASK [Create the application user] *********************************************
+ok: [order-node]
+
+TASK [Create application directories] ******************************************
+ok: [order-node] => (item={'path': '/opt/order-tracker', 'owner': 'ordertracker', 'mode': '0755'})
+ok: [order-node] => (item={'path': '/opt/order-tracker/releases', 'owner': 'ordertracker', 'mode': '0755'})
+ok: [order-node] => (item={'path': '/var/log/order-tracker', 'owner': 'ordertracker', 'mode': '0750'})
+ok: [order-node] => (item={'path': '/etc/order-tracker', 'owner': 'root', 'mode': '0750'})
+
+TASK [Write the application environment file] **********************************
+ok: [order-node]
+
+TASK [Install the systemd service unit] ****************************************
+ok: [order-node]
+
+TASK [Enable the service at boot (it is started when a release is deployed)] ***
+ok: [order-node]
+
+TASK [Check the installed Java version] ****************************************
+ok: [order-node]
+
+TASK [Show the Java version] ***************************************************
+ok: [order-node] => {
+    "msg": "openjdk version \"17.0.20.1\" 2026-08-18"
+}
+
+PLAY RECAP *********************************************************************
+order-node                 : ok=10   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+PLAY [Deploy a release] ********************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [order-node]
+
+TASK [Find the release that is live now] ***************************************
+ok: [order-node]
+
+TASK [Create the release folder] ***********************************************
+ok: [order-node]
+
+TASK [Copy the WAR into the release folder] ************************************
+ok: [order-node]
+
+TASK [Point current at the new release] ****************************************
+ok: [order-node]
+
+TASK [Restart the service because the release changed] *************************
+skipping: [order-node]
+
+TASK [Make sure the service is running] ****************************************
+ok: [order-node]
+
+TASK [Health check - wait until the application reports UP] ********************
+ok: [order-node]
+
+TASK [Remember the previous release for rollback] ******************************
+skipping: [order-node]
+
+TASK [Report the result] *******************************************************
+ok: [order-node] => {
+    "msg": "Release 1.0.0 is live and healthy: {\"status\":\"UP\"}"
+}
+
+PLAY RECAP *********************************************************************
+order-node                 : ok=8    changed=0    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+
+
+PLAY [Deploy a release] ********************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [order-node]
+
+TASK [Find the release that is live now] ***************************************
+ok: [order-node]
+
+TASK [Create the release folder] ***********************************************
+changed: [order-node]
+
+TASK [Copy the WAR into the release folder] ************************************
+changed: [order-node]
+
+TASK [Point current at the new release] ****************************************
+changed: [order-node]
+
+TASK [Restart the service because the release changed] *************************
+changed: [order-node]
+
+TASK [Make sure the service is running] ****************************************
+ok: [order-node]
+
+TASK [Health check - wait until the application reports UP] ********************
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (24 retries left).
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (23 retries left).
+ok: [order-node]
+
+TASK [Remember the previous release for rollback] ******************************
+changed: [order-node]
+
+TASK [Report the result] *******************************************************
+ok: [order-node] => {
+    "msg": "Release 1.1.0 is live and healthy: {\"status\":\"UP\"}"
+}
+
+PLAY RECAP *********************************************************************
+order-node                 : ok=10   changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+PLAY [Deploy a release] ********************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [order-node]
+
+TASK [Find the release that is live now] ***************************************
+ok: [order-node]
+
+TASK [Create the release folder] ***********************************************
+changed: [order-node]
+
+TASK [Copy the WAR into the release folder] ************************************
+changed: [order-node]
+
+TASK [Point current at the new release] ****************************************
+changed: [order-node]
+
+TASK [Restart the service because the release changed] *************************
+changed: [order-node]
+
+TASK [Make sure the service is running] ****************************************
+ok: [order-node]
+
+TASK [Health check - wait until the application reports UP] ********************
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (6 retries left).
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (5 retries left).
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (4 retries left).
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (3 retries left).
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (2 retries left).
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (1 retries left).
+[ERROR]: Task failed: Action failed: non-zero return code
+Origin: /mnt/c/Users/shrut/Documents/customer-order-tracking-system/ansible/deploy.yml:70:11
+
+68             state: started
+69
+70         - name: Health check - wait until the application reports UP
+             ^ column 11
+
+ok: [order-node]
+
+TASK [Remember the previous release for rollback] ******************************
+changed: [order-node]
+
+TASK [Report the result] *******************************************************
+ok: [order-node] => {
+    "msg": "Release 2.0.0-bad is live and healthy: "
+}
+
+PLAY RECAP *********************************************************************
+order-node                 : ok=10   changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+PLAY [Roll back to the previous release] ***************************************
+
+TASK [Find the previous release] ***********************************************
+ok: [order-node]
+
+TASK [Stop if there is no previous release] ************************************
+skipping: [order-node]
+
+TASK [Find the release that is live now] ***************************************
+ok: [order-node]
+
+TASK [Point current at the previous release] ***********************************
+changed: [order-node]
+
+TASK [Keep the replaced release as previous] ***********************************
+changed: [order-node]
+
+TASK [Restart the service] *****************************************************
+changed: [order-node]
+
+TASK [Health check - wait until the application reports UP] ********************
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (24 retries left).
+FAILED - RETRYING: [order-node]: Health check - wait until the application reports UP (23 retries left).
+ok: [order-node]
+
+TASK [Report the result] *******************************************************
+ok: [order-node] => {
+    "msg": "Rolled back to /opt/order-tracker/releases/1.1.0: {\"status\":\"UP\"}"
+}
+
+PLAY RECAP *********************************************************************
+order-node                 : ok=7    changed=3    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+
