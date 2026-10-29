@@ -1,58 +1,49 @@
 # Customer Order Tracking System
 
-A small web application for tracking customer orders, built and delivered through a **Jenkins-based DevOps pipeline**
-(Git/GitHub -> Maven -> Jenkins -> Selenium -> Docker -> Puppet/Ansible).
+A web application for tracking customer orders, delivered through a complete **Jenkins-based DevOps workflow**:
+Git/GitHub -> Maven -> Jenkins -> Selenium quality gate -> Docker -> Ansible.
 
-Course project: DevOps (B.E. Semester VII, Department of Computer Engineering, VIT).
+Course project: DevOps (B.E. Semester VII, Department of Computer Engineering, VIT) - Shruti Dubey, Roll No. 23102A0045.
 
-## MVP features
-- Item catalogue (add, edit, search items and stock)
-- Create / update orders
-- Order and stock status tracking
-- Search and filter orders
-- Exception alerts (low stock, delayed orders)
+## Features (MVP)
+Item catalogue, create/update orders, order and stock status, search and filter, exception alerts (low stock, delayed orders),
+REST API and health check.
 
-## Technology stack
+## Technology
 | Area | Choice |
-|------|--------|
-| Language / framework | Java 17+, Spring Boot 3.3, Thymeleaf |
-| Build | Maven 3.9+ |
-| Database | H2 (default), MySQL (optional profile) |
-| Server | Tomcat 10.1 (WAR) |
-| CI/CD | Git, GitHub, Jenkins, Docker, Puppet/Ansible, Selenium |
+|---|---|
+| Application | Java 17, Spring Boot 3.3, Thymeleaf, Spring Data JPA, H2 (MySQL profile) |
+| Build and tests | Maven, JUnit 5, Selenium 4 (Chrome) |
+| CI/CD | Git, GitHub, Jenkins (Jenkinsfile), Docker, local registry |
+| Servers | Tomcat 10.1 (WAR), Docker container, Ubuntu node configured with Ansible |
 
-## Getting started
-Prerequisites: JDK 17+, Maven 3.9+, Git.
-
-    git clone <repository-url>
-    cd customer-order-tracking-system
+## Run locally
     mvn clean package
+    set PORT=8081
     mvn spring-boot:run
+Open http://localhost:8081 (health: `/actuator/health`). Browser tests: `mvn test -Pselenium`.
 
-The application starts on http://localhost:8080. If that port is busy, set another one first:
+## Run in Docker
+    mvn clean package -DskipTests
+    docker build -t order-tracker:0.1.0 .
+    docker run -d --name order-tracker -p 8083:8080 order-tracker:0.1.0
 
-    set PORT=8081          (Windows)
-    export PORT=8081       (Linux / macOS)
+## Pipeline
+The `Jenkinsfile` runs Checkout, Build, Package (unit tests), Selenium Tests (quality gate), Docker Build, Docker Push,
+Docker Deploy and Deploy to Tomcat. A failing stage stops the pipeline.
 
-Health check: `/actuator/health`
-
-Continuous integration: Jenkins job order-tracker-ci builds the develop branch.
-
-## Project structure
-    src/main/java/com/vit/ordertracker/   application code (web, service, repository, model)
-    src/main/resources/                   templates, static files, configuration
-    src/test/java/                        unit and integration tests
-    docs/                                 requirements and architecture diagrams
-    .github/                              issue templates and pull request template
-    CONTRIBUTING.md                       branch policy and commit rules
-
-## Branching
-`main` (stable releases) <- `develop` (integration) <- `feature/*`, `bugfix/*`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+## Provision a node with Ansible (Ubuntu / WSL2)
+    ansible-playbook -i ansible/inventory.ini ansible/site.yml
+    ansible-playbook -i ansible/inventory.ini ansible/deploy.yml -e app_version=1.0.0
+    ansible-playbook -i ansible/inventory.ini ansible/rollback.yml
 
 ## Documentation
-- [Use-case diagram](docs/images/use-case-diagram.png)
-- [Architecture diagram](docs/images/architecture-diagram.png)
-- [DevOps lifecycle](docs/images/devops-lifecycle.png)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Troubleshooting guide](docs/TROUBLESHOOTING.md)
+- [Limitations and future enhancements](docs/LIMITATIONS_AND_FUTURE.md)
+- [Demonstration script](docs/DEMO_SCRIPT.md)
+- [Branch policy and commit rules](CONTRIBUTING.md)
+- Diagrams: `docs/images/`
 
-## Author
-Shruti Dubey (Roll No. 23102A0045)
+## Branches and releases
+`main` (releases, tagged v0.1.0 and v1.0.0) <- `develop` (integration) <- `feature/*`, `bugfix/*`. Changes reach `develop` only through pull requests.
